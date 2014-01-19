@@ -716,3 +716,13 @@ struct
     let ( <-- ) hamt (k, v) = add k v hamt
   end
 end
+
+module Make' = Make (StdConfig)
+
+module With_polymorphic (M : sig type t end) = struct
+  include M
+  let hash = Hashtbl.hash
+end
+
+module String = Make' (With_polymorphic (struct type t = string end))
+module Int = Make' (With_polymorphic (struct type t = int end))
