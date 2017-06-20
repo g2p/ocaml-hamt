@@ -1,0 +1,10 @@
+(jbuild_version 1)
+
+(library
+ ((name        hamt)
+  (public_name hamt)
+  (flags (:standard -safe-string -w -27))
+  (ocamlopt_flags (:standard -O3))
+  (wrapped false)
+ ))
+

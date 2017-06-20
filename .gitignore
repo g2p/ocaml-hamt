@@ -7,3 +7,5 @@ dist/
 bench1
 param
 test-t1
+.merlin
+/hamt.install
