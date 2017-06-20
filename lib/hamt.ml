@@ -128,7 +128,7 @@ module Make (Config : Config) (Key : Hashtbl.HashedType) : S with type key = Key
 
   let leaf h k v = Leaf (h, k, v)
 
-  let node_children = function
+  let _node_children = function
     | BitmapIndexedNode (_, base) -> base
     | ArrayNode (_, children) -> children
     | _ -> failwith "children"
@@ -154,7 +154,7 @@ module Make (Config : Config) (Key : Hashtbl.HashedType) : S with type key = Key
     | Empty | Leaf (_, _, _) | HashCollision (_, _) -> true
     | _ -> false
 
-  let node_hash = function
+  let _node_hash = function
     | Leaf (h, _, _)
     | HashCollision (h, _) -> h
     | _ -> failwith "node_hash"
@@ -532,7 +532,7 @@ module Make (Config : Config) (Key : Hashtbl.HashedType) : S with type key = Key
     let (k, v) = choose hamt in
     (k, v), remove k hamt
 
-  let array_of_rev_list li =
+  let _array_of_rev_list li =
     let a = Array.make (List.length li) (List.hd li) in
     let rec aux n = function
       | [] -> ()
