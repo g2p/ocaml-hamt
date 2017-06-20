@@ -6,8 +6,8 @@ myocamlbuild.ml
 setup.ml
 *.mllib
 *.mldylib
-#*#
-*~
+.merlin
+/hamt.install
 *.cmi
 *.cmo
 *.native
