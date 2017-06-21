@@ -279,8 +279,10 @@ module Make (Config : Config) (Key : Hashtbl.HashedType) : S with type key = Key
 
   let rec alter_node ?(mute=false) shift hash key update = function
     | Empty ->
+      Logs.debug (fun m -> m "Empty");
       option Empty (leaf hash key) (update None)
     | Leaf (h, k, v) as leaf1 ->
+      Logs.debug (fun m -> m "Leaf %b" Key.(k=key));
       if Key.(k = key)
       then option Empty (leaf h k) (update (Some v))
       else
@@ -288,6 +290,7 @@ module Make (Config : Config) (Key : Hashtbl.HashedType) : S with type key = Key
           (fun x -> combine_tip shift leaf1 (Leaf (hash, key, x)))
           (update None)
     | HashCollision (h, pairs) as hash_collision ->
+      Logs.debug (fun m -> m "HashCollision");
       if hash = h then
         let pairs = update_list update key pairs in
         begin
@@ -301,6 +304,7 @@ module Make (Config : Config) (Key : Hashtbl.HashedType) : S with type key = Key
           (fun x -> combine_tip shift (Leaf (hash, key, x)) hash_collision)
           (update None)
     | BitmapIndexedNode (bitmap, base) as bm_node ->
+      Logs.debug (fun m -> m "BitmapIndexedNode");
       let sub_hash = hash_fragment shift hash in
       let ix = from_bitmap bitmap sub_hash in
       let bit = 1 lsl sub_hash in
@@ -314,6 +318,7 @@ module Make (Config : Config) (Key : Hashtbl.HashedType) : S with type key = Key
           if mute then begin base.(ix) <- child; bm_node end
           else BitmapIndexedNode (bitmap, set_tab base ix child)
         | Removed ->
+          Logs.debug (fun m -> m "BitmapIndexedNode child removed %d" ((bitmap land (lnot bit)) land mask));
           let bitmap = (bitmap land (lnot bit)) land mask in
           if bitmap = 0 then Empty
           else
@@ -326,9 +331,11 @@ module Make (Config : Config) (Key : Hashtbl.HashedType) : S with type key = Key
           else BitmapIndexedNode (bitmap lor bit, add_tab base ix child)
       end
     | ArrayNode (nb_children, children) as arr_node ->
+      Logs.debug (fun m -> m "ArrayNode");
       let sub_hash = hash_fragment shift hash in
       let child = children.(sub_hash) in
       let child' = alter_node ~mute (shift + shift_step) hash key update child in
+      Logs.debug (fun m -> m "ArrayNode cardinals %d %d" (cardinal child) (cardinal child'));
       match change (is_empty child) (is_empty child') with
       | Nil -> arr_node
       | Added ->
@@ -342,6 +349,7 @@ module Make (Config : Config) (Key : Hashtbl.HashedType) : S with type key = Key
         if mute then begin children.(sub_hash) <- child'; arr_node end
         else ArrayNode (nb_children, set_tab children sub_hash child')
       | Removed ->
+        Logs.debug (fun m -> m "ArrayNode child removed");
         if nb_children = arrnode_min then
           pack_array_node (( = ) sub_hash) nb_children children
         else
